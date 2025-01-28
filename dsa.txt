@@ -1,0 +1,274 @@
+https://leetcode.com/problems/divide-two-integers/description/ : 
+
+public class Solution {
+    public int divide(int dividend, int divisor) {
+        // Handle edge case where result will overflow
+        if (dividend == Integer.MIN_VALUE && divisor == -1) {
+            return Integer.MAX_VALUE;
+        }
+
+
+        // Figure out the sign of the result
+        boolean isNegative = (dividend < 0) ^ (divisor < 0);
+
+
+        // Work with absolute values
+        long absDividend = Math.abs((long) dividend);
+        long absDivisor = Math.abs((long) divisor);
+
+
+        int quotient = 0;
+
+
+        // Keep subtracting in chunks (using bit shifting for efficiency)
+        while (absDividend >= absDivisor) {
+            long tempDivisor = absDivisor;
+            int multiple = 1;
+
+
+            // Double the divisor until it exceeds the remaining dividend
+            while (absDividend >= (tempDivisor << 1)) {
+                tempDivisor <<= 1;
+                multiple <<= 1;
+            }
+
+
+            // Subtract the largest chunk and add the multiples
+            absDividend -= tempDivisor;
+            quotient += multiple;
+        }
+
+
+        // Apply the sign
+        return isNegative ? -quotient : quotient;
+    }
+}
+
+
+
+Okay, so here's how I thought about this problem:
+Division without / or % is tough but doable if we think like a human doing division manually. I decided to just keep subtracting the divisor from the dividend until I can't anymore. But wait—it'll take forever if the numbers are big, right? So, I thought: "Why not subtract in chunks instead of one by one?"
+Sign matters:
+If one of the numbers is negative and the other is positive, the answer should be negative. If both are negative or both are positive, it's positive.
+To make life easier, I worked with absolute values first and applied the sign later.
+Handle overflow:
+If the result goes beyond the limits of a 32-bit integer (like 2³¹ - 1 or -2³¹), I had to cap it.
+How This Works:
+Check for Overflow: If dividing the smallest integer (-2³¹) by -1, it’s gonna blow past the 2³¹ - 1 limit, so I just return that.
+Signs Matter:
+isNegative uses XOR (^) to check if signs are opposite. If true, the result will be negative; otherwise, it's positive.
+Do the Actual Division:
+Start with absolute values of the numbers.
+Keep subtracting the divisor in bigger chunks using bit shifting (e.g., instead of subtracting 3, subtract 6, 12, etc.).
+Combine Everything:
+After all the chunk subtraction is done, add up how many times we subtracted (this is the quotient).
+Apply the sign to the result.
+Run and Test
+
+
+https://leetcode.com/problems/summary-ranges/description/
+
+
+import java.util.ArrayList;
+import java.util.List;
+
+
+public class Solution {
+    public List<String> summaryRanges(int[] nums) {
+        List<String> result = new ArrayList<>();
+       
+        if (nums == null || nums.length == 0) {
+            return result; // Return empty list for empty input
+        }
+
+
+        // Start of the current range
+        int start = nums[0];
+
+
+        for (int i = 1; i < nums.length; i++) {
+            // If the sequence breaks
+            if (nums[i] != nums[i - 1] + 1) {
+                // Add the range to the result
+                if (start == nums[i - 1]) {
+                    result.add(String.valueOf(start)); // Single number range
+                } else {
+                    result.add(start + "->" + nums[i - 1]); // Full range
+                }
+                // Update the start of the next range
+                start = nums[i];
+            }
+        }
+
+
+        // Add the last range
+        if (start == nums[nums.length - 1]) {
+            result.add(String.valueOf(start));
+        } else {
+            result.add(start + "->" + nums[nums.length - 1]);
+        }
+
+
+        return result;
+    }
+
+
+    public static void main(String[] args) {
+        Solution solution = new Solution();
+
+
+        // Example 1
+        int[] nums1 = {0, 1, 2, 4, 5, 7};
+        System.out.println(solution.summaryRanges(nums1));
+
+
+        // Example 2
+        int[] nums2 = {0, 2, 3, 4, 6, 8, 9};
+        System.out.println(solution.summaryRanges(nums2));
+
+
+        // Edge case: empty array
+        int[] nums3 = {};
+        System.out.println(solution.summaryRanges(nums3));
+
+
+        // Edge case: single number
+        int[] nums4 = {5};
+        System.out.println(solution.summaryRanges(nums4));
+    }
+}
+
+
+
+How I Thought:
+The array is sorted and unique, so it's easy to group consecutive numbers into ranges.
+I kept track of the start of a range and moved through the array:
+If the current number breaks the consecutive sequence, I ended the range and added it to the result list.
+If a range has only one number, it's just "a". Otherwise, it’s "a->b".
+At the end of the loop, don’t forget to add the last range.
+
+How it works:
+Initialize the Start of the Range:
+Start with the first number in the array (start = nums[0]).
+Loop Through the Array:
+Check if the current number breaks the sequence (nums[i] != nums[i-1] + 1).
+If it breaks, add the range [start, nums[i-1]] to the result.
+Handle the Last Range:
+At the end of the loop, handle the last range separately since it may not have been added.
+Edge Cases:
+If the array is empty, return an empty list.
+If the array has one element, the result is just that element.
+
+https://leetcode.com/problems/decode-ways/
+
+public class Solution {
+    public int numDecodings(String s) {
+        // If the string starts with '0', it's invalid
+        if (s == null || s.length() == 0 || s.charAt(0) == '0') {
+            return 0;
+        }
+
+
+        int n = s.length();
+        int[] dp = new int[n + 1];
+        dp[0] = 1; // Base case: empty string
+        dp[1] = 1; // Single character (assuming it's not '0')
+
+
+        for (int i = 2; i <= n; i++) {
+            // Current digit
+            int singleDigit = s.charAt(i - 1) - '0';
+            // Last two digits
+            int twoDigits = Integer.parseInt(s.substring(i - 2, i));
+
+
+            // If single digit is valid (1-9), add dp[i-1]
+            if (singleDigit >= 1 && singleDigit <= 9) {
+                dp[i] += dp[i - 1];
+            }
+
+
+            // If two digits form a valid number (10-26), add dp[i-2]
+            if (twoDigits >= 10 && twoDigits <= 26) {
+                dp[i] += dp[i - 2];
+            }
+        }
+
+
+        return dp[n];
+    }
+
+
+    public static void main(String[] args) {
+        Solution solution = new Solution();
+
+
+        // Example 1
+        String s1 = "12";
+        System.out.println(solution.numDecodings(s1));
+
+
+        // Example 2
+        String s2 = "226";
+        System.out.println(solution.numDecodings(s2));
+
+
+        // Example 3
+        String s3 = "06";
+        System.out.println(solution.numDecodings(s3));
+
+
+        // Edge case: Empty string
+        String s4 = "";
+        System.out.println(solution.numDecodings(s4));
+
+
+        // Edge case: Leading zero
+        String s5 = "102";
+        System.out.println(solution.numDecodings(s5));
+    }
+}
+
+
+
+What I Thought
+Understanding the Problem:
+I saw that each digit (or two digits) in the string can map to a letter.
+The tricky part is how to handle situations where a single digit works, but two digits could also work. For example:
+"12" → Can be decoded as "AB" (1, 2) or "L" (12).
+I also noticed some invalid cases, like:
+"06" → Doesn't work because "06" is invalid (no leading zeros allowed).
+Break It Down:
+The key idea is to check:
+Can the current digit (s[i]) stand alone?
+Can the last two digits (s[i-1]s[i]) form a valid pair?
+Based on that, I can add up the number of ways to decode.
+Dynamic Programming Came to Mind:
+I need to remember how many ways there are to decode the string up to a certain point. That’s where dp[i] comes in.
+dp[i] will tell me how many ways I can decode the string s[0:i].
+If the current digit or the last two digits are valid, I add the corresponding previous dp values.
+Start Simple:
+If the string is empty or starts with a zero, I return 0 because it’s invalid.
+For the first digit, if it’s valid (1-9), there’s only one way to decode it.
+Build It Up:
+From the second character onward, I check:
+Is the current digit valid? If yes, add dp[i-1] to dp[i].
+Are the last two digits valid (e.g., 10-26)? If yes, add dp[i-2] to dp[i].
+How It Works
+Here's how I thought about the steps with an example:
+Example: "226"
+I started with dp[0] = 1 because an empty string can only be decoded one way (do nothing).
+For the first character "2", it's valid (1-9), so dp[1] = 1.
+At the second character "2":
+Single digit "2" is valid → Add dp[1] to dp[2].
+Two digits "22" are also valid → Add dp[0] to dp[2].
+Now dp[2] = 2.
+At the third character "6":
+Single digit "6" is valid → Add dp[2] to dp[3].
+Two digits "26" are valid → Add dp[1] to dp[3].
+Now dp[3] = 3.
+At the end, dp[3] = 3, which means there are 3 ways to decode "226".
+
+
+
+
